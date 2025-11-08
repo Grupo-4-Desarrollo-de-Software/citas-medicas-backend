@@ -1,0 +1,82 @@
+@startuml
+entity "Paciente" as PAC {
+  *id_paciente : SERIAL
+  dni : VARCHAR(15)
+  nombres : VARCHAR(100)
+  telefono : VARCHAR(15)
+  direccion : VARCHAR(150)
+  idioma_preferido : VARCHAR(20)
+  created_at : TIMESTAMP
+}
+
+entity "Sede" as SED {
+  *id_sede : SERIAL
+  nombre : VARCHAR(100)
+  direccion : VARCHAR(150)
+  telefono_contacto : VARCHAR(15)
+}
+
+entity "Especialidad" as ESP {
+  *id_especialidad : SERIAL
+  nombre : VARCHAR(100)
+  descripcion : TEXT
+}
+
+entity "Médico" as MED {
+  *id_medico : SERIAL
+  id_especialidad : INT
+  id_sede : INT
+  nombres : VARCHAR(100)
+  colegiatura : VARCHAR(30)
+  disponibilidad : JSONB
+}
+
+entity "Cita" as CIT {
+  *id_cita : SERIAL
+  id_paciente : INT
+  id_medico : INT
+  fecha : DATE
+  hora : TIME
+  canal : VARCHAR(10)
+  estado : VARCHAR(20)
+  codigo_confirmacion : VARCHAR(10)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Operador" as OPE {
+  *id_operador : SERIAL
+  nombres : VARCHAR(100)
+  usuario : VARCHAR(50)
+  password_hash : TEXT
+  rol : VARCHAR(20)
+  id_sede : INT
+  activo : BOOLEAN
+}
+
+entity "Confirmación" as CON {
+  *id_confirmacion : SERIAL
+  id_cita : INT
+  id_operador : INT
+  fecha_confirmacion : TIMESTAMP
+  medio : VARCHAR(10)
+  observaciones : TEXT
+}
+
+entity "Log_Auditoria" as LOG {
+  *id_log : SERIAL
+  usuario : VARCHAR(100)
+  accion : VARCHAR(100)
+  detalle : TEXT
+  fecha_evento : TIMESTAMP
+}
+
+PAC ||--o{ CIT : realiza
+MED ||--o{ CIT : atiende
+SED ||--o{ MED : pertenece
+ESP ||--o{ MED : clasifica
+CIT ||--|| CON : tiene
+OPE ||--o{ CON : confirma
+OPE ||--o{ LOG : registra
+CIT ||--o{ LOG : genera
+@enduml
