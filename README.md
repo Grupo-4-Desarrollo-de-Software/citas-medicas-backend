@@ -105,4 +105,36 @@ db/migrations/
 - **Idempotencia**: puedes enviar la cabecera `Idempotency-Key` al crear una cita. Si una petición con la misma clave ya fue procesada, la API devolverá la cita creada anteriormente en lugar de crear una nueva.
 - **Evitar choques de horario**: al crear una cita la API valida que no exista otra cita para el mismo `id_medico` en la misma `fecha` y `hora` (se excluyen citas con `estado = 'CANCELADO'`). Si hay conflicto, la API responde con `409 Conflict`.
 
+## Envío de SMS (Twilio u otro proveedor)
+
+El backend incluye un módulo de SMS en `src/services/sms.service.ts` que funciona en dos modos:
+
+- Fallback (por defecto): si `SMS_ENABLED` no está en `true` o no se instaló `twilio`, el servicio hace un `console.log` con el contenido del SMS (útil en entornos 2G con gateways externos o en desarrollo).
+- Twilio: si instalas `twilio` y configuras las variables de entorno, el servicio usará la API de Twilio para enviar SMS.
+
+Variables de entorno relevantes:
+- `SMS_ENABLED=true` — habilita envío de SMS.
+- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` — credenciales y remitente de Twilio.
+
+Uso en endpoints:
+- Al crear una cita puedes enviar `telefono` en el body (formato E.164, p. ej. `+519xxxxxxxx`) y, si `SMS_ENABLED=true`, el sistema enviará un SMS confirmando la creación.
+- Al confirmar una cita (`POST /api/citas/confirmar`) también puedes incluir `telefono` en el body para recibir un SMS con la confirmación.
+
+Ejemplo crear cita con teléfono:
+```bash
+curl -i -X POST http://localhost:3000/api/citas \
+   -H "Content-Type: application/json" \
+   -d '{"id_paciente":1,"id_medico":2,"fecha":"2025-12-10","hora":"09:30:00","canal":"SMS","telefono":"+519XXXXXXXX"}'
+```
+
+Si quieres usar Twilio en producción instala la dependencia y configura las env vars:
+```cmd
+npm install twilio --save
+set TWILIO_ACCOUNT_SID=your_sid
+set TWILIO_AUTH_TOKEN=your_token
+set TWILIO_FROM=+1XXXXXXXXXX
+set SMS_ENABLED=true
+```
+
+
 

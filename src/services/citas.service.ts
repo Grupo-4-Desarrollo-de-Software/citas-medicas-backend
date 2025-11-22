@@ -1,6 +1,7 @@
 import { QueryResultRow, PoolClient } from 'pg';
 import database, { QueryParams } from '../db/database';
 import { Cita, CreateCitaDTO } from '../models/cita.model';
+import smsService from './sms.service';
 
 export type { CreateCitaDTO };
 export type Canal = CreateCitaDTO['canal'];
@@ -102,6 +103,15 @@ export const createCita = async (
     // validate schedule conflict
     await ensureNoScheduleConflict(payload);
     const cita = await insert<Cita>('cita', payload);
+    // Send SMS notification if enabled and telefono provided
+    try {
+      if (payload.telefono) {
+        const text = `Su cita ha sido registrada para ${payload.fecha} a las ${payload.hora}.`;
+        await smsService.sendSms(payload.telefono, text);
+      }
+    } catch (err) {
+      console.error('[CITAS] Error sending SMS after create', err);
+    }
     return { cita, created: true };
   }
 
@@ -153,6 +163,16 @@ export const createCita = async (
     );
 
     await database.commit(client);
+    // Send SMS notification if enabled and telefono provided
+    try {
+      if ((payload as any).telefono) {
+        const text = `Su cita ha sido registrada para ${payload.fecha} a las ${payload.hora}.`;
+        await smsService.sendSms((payload as any).telefono, text);
+      }
+    } catch (err) {
+      console.error('[CITAS] Error sending SMS after create (idempotent)', err);
+    }
+
     return { cita: nuevaCita, created: true };
   } catch (error) {
     await database.rollback(client);
@@ -192,7 +212,7 @@ export const getCitaById = async (id: number): Promise<Cita | null> => {
   return findById<Cita>('cita', id);
 };
 
-export const confirmCita = async (id: number): Promise<Cita> => {
+export const confirmCita = async (id: number, telefono?: string): Promise<Cita> => {
   const query = `
     UPDATE citas
     SET estado = $1, confirmed_at = NOW()

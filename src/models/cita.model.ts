@@ -24,4 +24,5 @@ export interface CreateCitaDTO {
   hora: string;
   canal: 'API' | 'SMS' | 'WEB';
   estado?: string;
+  telefono?: string; // opcional: número en formato E.164 para enviar SMS
 }

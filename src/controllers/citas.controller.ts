@@ -12,6 +12,7 @@ const allowedCanales: Canal[] = ['API', 'SMS', 'WEB'];
 
 const buildCreateDto = (body: Request['body']): CreateCitaDTO => {
   const { id_paciente, id_medico, fecha, hora, canal, estado } = body;
+  const telefono = body.telefono;
 
   const parsedPaciente = Number(id_paciente);
   const parsedMedico = Number(id_medico);
@@ -34,6 +35,10 @@ const buildCreateDto = (body: Request['body']): CreateCitaDTO => {
     throw new Error('VALIDATION_ERROR');
   }
 
+  if (telefono && typeof telefono !== 'string') {
+    throw new Error('VALIDATION_ERROR');
+  }
+
   return {
     id_paciente: parsedPaciente,
     id_medico: parsedMedico,
@@ -41,6 +46,7 @@ const buildCreateDto = (body: Request['body']): CreateCitaDTO => {
     hora,
     canal: canal as Canal,
     estado,
+    telefono,
   };
 };
 
@@ -129,14 +135,14 @@ export const confirmCitaController = async (
   next: NextFunction,
 ) => {
   try {
-    const { id_cita, id } = req.body as { id_cita?: number; id?: number };
+    const { id_cita, id, telefono } = req.body as { id_cita?: number; id?: number; telefono?: string };
     const idNum = Number(id_cita ?? id);
 
     if (Number.isNaN(idNum)) {
       return res.status(400).json({ message: 'El id de la cita debe ser numérico' });
     }
 
-    const updated = await confirmCita(idNum);
+    const updated = await confirmCita(idNum, telefono);
     return res.json(updated);
   } catch (error) {
     if (error instanceof Error) {
