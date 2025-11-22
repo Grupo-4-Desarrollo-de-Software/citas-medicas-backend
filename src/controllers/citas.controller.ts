@@ -5,6 +5,7 @@ import {
   createCita,
   getCitaById,
   getCitas,
+  confirmCita,
 } from '../services/citas.service';
 
 const allowedCanales: Canal[] = ['API', 'SMS', 'WEB'];
@@ -50,8 +51,17 @@ export const createCitaController = async (
 ) => {
   try {
     const dto = buildCreateDto(req.body);
-    const nuevaCita = await createCita(dto);
-    res.status(201).json(nuevaCita);
+    const idempotencyKey =
+      (req.header('Idempotency-Key') || req.header('idempotency-key')) ?? undefined;
+
+    const result = await createCita(dto, idempotencyKey);
+
+    if (result.created) {
+      return res.status(201).json(result.cita);
+    }
+
+    // If idempotent repeat, return the existing resource
+    return res.status(200).json(result.cita);
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === 'VALIDATION_ERROR') {
@@ -64,6 +74,11 @@ export const createCitaController = async (
         return res
           .status(400)
           .json({ message: "El canal debe ser 'API', 'SMS' o 'WEB'" });
+      }
+      if (error.message === 'SCHEDULE_CONFLICT') {
+        return res
+          .status(409)
+          .json({ message: 'Existe otra cita para ese médico en la misma fecha/hora' });
       }
     }
 
@@ -104,6 +119,32 @@ export const getCitaByIdController = async (
 
     res.json(cita);
   } catch (error) {
+    next(error);
+  }
+};
+
+export const confirmCitaController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { id_cita, id } = req.body as { id_cita?: number; id?: number };
+    const idNum = Number(id_cita ?? id);
+
+    if (Number.isNaN(idNum)) {
+      return res.status(400).json({ message: 'El id de la cita debe ser numérico' });
+    }
+
+    const updated = await confirmCita(idNum);
+    return res.json(updated);
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === 'NOT_FOUND') {
+        return res.status(404).json({ message: 'Cita no encontrada' });
+      }
+    }
+
     next(error);
   }
 };

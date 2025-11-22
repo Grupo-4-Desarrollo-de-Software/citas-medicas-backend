@@ -11,6 +11,7 @@ export interface Cita {
   estado: string;
   created_at: string;
   updated_at: string;
+  confirmed_at?: string | null;
 }
 
 /**

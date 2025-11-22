@@ -67,6 +67,13 @@ curl -i http://localhost:3000/api/citas
 
 # Obtener cita por ID
 curl -i http://localhost:3000/api/citas/1
+
+# Confirmar cita
+```bash
+curl -i -X POST http://localhost:3000/api/citas/confirmar \
+   -H "Content-Type: application/json" \
+   -d '{"id_cita": 1 }'
+```
 ```
 
 ## Estructura relevante
@@ -93,4 +100,9 @@ db/migrations/
 ## Problemas comunes
 - **`ECONNREFUSED`**: la API no alcanza al servicio `postgres`. Verifica que Docker Compose esté arriba y que las credenciales coincidan.
 - **`42P01 relation "citas" does not exist`**: borra el volumen `postgres_data` y vuelve a levantar para que corra la migración inicial.
+ 
+## Notas sobre idempotencia y validaciones de horario
+- **Idempotencia**: puedes enviar la cabecera `Idempotency-Key` al crear una cita. Si una petición con la misma clave ya fue procesada, la API devolverá la cita creada anteriormente en lugar de crear una nueva.
+- **Evitar choques de horario**: al crear una cita la API valida que no exista otra cita para el mismo `id_medico` en la misma `fecha` y `hora` (se excluyen citas con `estado = 'CANCELADO'`). Si hay conflicto, la API responde con `409 Conflict`.
+
 
