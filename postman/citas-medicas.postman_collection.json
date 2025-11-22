@@ -1,0 +1,146 @@
+{
+    "info": {
+        "name": "Citas Médicas - Colección",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "description": "Colección con ejemplos para los flujos principales de la API de citas (crear, listar, obtener, confirmar)."
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3000"
+        },
+        {
+            "key": "citaId",
+            "value": "10"
+        },
+        {
+            "key": "idempotencyKey",
+            "value": "my-unique-key-123"
+        }
+    ],
+    "item": [
+        {
+            "name": "Crear cita (simple)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"id_paciente\": 1,\n  \"id_medico\": 2,\n  \"fecha\": \"2025-12-01\",\n  \"hora\": \"09:30\",\n  \"canal\": \"API\",\n  \"telefono\": \"+5491112345678\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/citas",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "citas"
+                    ]
+                },
+                "description": "Crea una nueva cita. Si no se pasa la cabecera Idempotency-Key, la creación es normal (no idempotente)."
+            }
+        },
+        {
+            "name": "Crear cita (idempotente)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Idempotency-Key",
+                        "value": "{{idempotencyKey}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"id_paciente\": 3,\n  \"id_medico\": 5,\n  \"fecha\": \"2025-12-02\",\n  \"hora\": \"14:00\",\n  \"canal\": \"WEB\",\n  \"telefono\": \"+5491112345678\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/citas",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "citas"
+                    ]
+                },
+                "description": "Crear cita usando Idempotency-Key. Repetir la petición con la misma key devuelve la misma cita en vez de crear otra."
+            }
+        },
+        {
+            "name": "Listar citas",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/citas",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "citas"
+                    ]
+                },
+                "description": "Devuelve todas las citas ordenadas por fecha/hora."
+            }
+        },
+        {
+            "name": "Obtener cita por id",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/citas/{{citaId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "citas",
+                        "{{citaId}}"
+                    ]
+                },
+                "description": "Obtener una cita por su id. Cambia la variable `citaId` según necesites."
+            }
+        },
+        {
+            "name": "Confirmar cita",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"id_cita\": {{citaId}},\n  \"telefono\": \"+5491112345678\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/citas/confirmar",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "citas",
+                        "confirmar"
+                    ]
+                },
+                "description": "Marca la cita como CONFIRMADO y actualiza `confirmed_at`. También acepta `id` en lugar de `id_cita`."
+            }
+        }
+    ]
+}
