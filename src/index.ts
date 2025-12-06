@@ -3,6 +3,7 @@ import express from 'express';
 import citasRouter from './routes/citas.routes';
 import database from './db/database';
 import errorMiddleware from './middlewares/error.middleware';
+import runMigrations from './db/migrations';
 import cors from 'cors';
 
 const app = express();
@@ -31,6 +32,11 @@ const startServer = async () => {
   while (retries < maxRetries) {
     try {
       await database.query('SELECT 1');
+      
+      // Ejecutar migraciones
+      console.log('[SERVER] Iniciando migraciones de base de datos...');
+      await runMigrations();
+      
       app.listen(PORT, () => {
         console.log(`API lista en el puerto ${PORT}`);
       });
