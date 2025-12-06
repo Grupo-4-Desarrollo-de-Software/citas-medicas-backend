@@ -17,6 +17,7 @@ Backend en Node.js + TypeScript + PostgreSQL para registrar y consultar citas m�
    DB_PASSWORD=postgres
    DB_NAME=reservas_db
    PORT=3000
+   JWT_SECRET=cambia_esto
    ```
 3. Instala dependencias para desarrollo local:
    ```bash
@@ -47,33 +48,37 @@ docker compose down -v
 - `npm start`: ejecuta `node dist/index.js`.
 
 ## Endpoints principales
-```bash
-# Health check
-curl -i http://localhost:3000/api/health
+- Health: `GET /api/health`
+- Citas públicas: `POST /api/citas`, `GET /api/citas`, `GET /api/citas/:id`, `POST /api/citas/confirmar`, `POST /api/citas/cancelar`
+- Autenticación: `POST /api/auth/register`, `POST /api/auth/login` → devuelve `{ token, user }`
+- Sedes (JWT requerido): `GET/POST/PUT/DELETE /api/sedes`, `GET /api/sedes/:id/especialidades`, `POST/DELETE /api/sedes/:id_sede/especialidades/:id_especialidad`
+- Especialidades (JWT requerido): `GET/POST/PUT/DELETE /api/especialidades`
+- Métricas (JWT requerido): `GET /api/metrics/operacion`
 
+Ejemplos rápidos:
+```bash
 # Crear cita
 curl -i -X POST http://localhost:3000/api/citas \
   -H "Content-Type: application/json" \
-  -d '{
-        "id_paciente": 1,
-        "id_medico": 2,
-        "fecha": "2024-12-10",
-        "hora": "09:30:00",
-        "canal": "API"
-      }'
+  -d '{"id_paciente":1,"id_medico":2,"fecha":"2024-12-10","hora":"09:30:00","canal":"API"}'
 
-# Listar citas
-curl -i http://localhost:3000/api/citas
+# Confirmar o cancelar una cita
+curl -i -X POST http://localhost:3000/api/citas/confirmar -H "Content-Type: application/json" -d '{"id_cita":1}'
+curl -i -X POST http://localhost:3000/api/citas/cancelar -H "Content-Type: application/json" -d '{"id_cita":1}'
 
-# Obtener cita por ID
-curl -i http://localhost:3000/api/citas/1
+# Login para obtener token
+curl -i -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@demo.com","password":"secreto"}'
 
-# Confirmar cita
-```bash
-curl -i -X POST http://localhost:3000/api/citas/confirmar \
-   -H "Content-Type: application/json" \
-   -d '{"id_cita": 1 }'
-```
+# Crear sede (requiere Authorization: Bearer <token>)
+curl -i -X POST http://localhost:3000/api/sedes \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"nombre":"Sede Central","direccion":"Av. Demo 123"}'
+
+# Métricas de operación
+curl -i -H "Authorization: Bearer <token>" http://localhost:3000/api/metrics/operacion
 ```
 
 ## Estructura relevante
@@ -84,17 +89,38 @@ src/
 │   ├── pool.ts              # Configuración base del pool
 │   └── database.ts          # Helper para queries/transacciones
 ├── middlewares/
+│   ├── auth.middleware.ts   # Protección JWT y roles
 │   └── error.middleware.ts  # Manejo centralizado de errores SQL
 ├── models/
-│   └── cita.model.ts        # Interfaces tipadas
+│   ├── cita.model.ts
+│   ├── especialidad.model.ts
+│   ├── sede.model.ts
+│   └── user.model.ts
 ├── routes/
-│   └── citas.routes.ts      # Rutas /api/citas
+│   ├── auth.routes.ts
+│   ├── citas.routes.ts
+│   ├── especialidades.routes.ts
+│   ├── metrics.routes.ts
+│   └── sedes.routes.ts
 ├── controllers/
-│   └── citas.controller.ts  # Validación + orquestación
+│   ├── auth.controller.ts
+│   ├── citas.controller.ts
+│   ├── especialidades.controller.ts
+│   ├── metrics.controller.ts
+│   └── sedes.controller.ts
 └── services/
-    └── citas.service.ts     # Lógica de acceso a datos
+    ├── auth.service.ts
+    ├── citas.service.ts
+    ├── especialidades.service.ts
+    ├── metrics.service.ts
+    └── sedes.service.ts
 db/migrations/
-└── 001_create_citas.sql     # Esquema inicial + trigger updated_at
+├── 001_create_citas.sql
+├── 002_create_idempotency.sql
+├── 003_add_confirmed_at.sql
+├── 004_create_usuarios.sql
+├── 005_create_sedes_especialidades.sql
+└── 006_add_cancelled_at.sql
 ```
 
 ## Problemas comunes
@@ -135,6 +161,3 @@ set TWILIO_AUTH_TOKEN=your_token
 set TWILIO_FROM=+1XXXXXXXXXX
 set SMS_ENABLED=true
 ```
-
-
-

@@ -5,6 +5,10 @@ import database from './db/database';
 import errorMiddleware from './middlewares/error.middleware';
 import runMigrations from './db/migrations';
 import cors from 'cors';
+import authRouter from './routes/auth.routes';
+import sedesRouter from './routes/sedes.routes';
+import especialidadesRouter from './routes/especialidades.routes';
+import metricsRouter from './routes/metrics.routes';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -21,7 +25,11 @@ app.get('/api/health', async (_req, res, next) => {
   }
 });
 
+app.use('/api/auth', authRouter);
 app.use('/api/citas', citasRouter);
+app.use('/api/sedes', sedesRouter);
+app.use('/api/especialidades', especialidadesRouter);
+app.use('/api/metrics', metricsRouter);
 
 app.use(errorMiddleware);
 

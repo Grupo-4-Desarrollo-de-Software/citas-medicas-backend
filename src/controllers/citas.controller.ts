@@ -6,6 +6,7 @@ import {
   getCitaById,
   getCitas,
   confirmCita,
+  cancelCita,
 } from '../services/citas.service';
 
 const allowedCanales: Canal[] = ['API', 'SMS', 'WEB'];
@@ -149,8 +150,36 @@ export const confirmCitaController = async (
       if (error.message === 'NOT_FOUND') {
         return res.status(404).json({ message: 'Cita no encontrada' });
       }
+      if (error.message === 'ALREADY_CANCELLED') {
+        return res
+          .status(409)
+          .json({ message: 'La cita está cancelada y no puede confirmarse' });
+      }
     }
 
+    next(error);
+  }
+};
+
+export const cancelCitaController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { id_cita, id } = req.body as { id_cita?: number; id?: number };
+    const idNum = Number(id_cita ?? id);
+
+    if (Number.isNaN(idNum)) {
+      return res.status(400).json({ message: 'El id de la cita debe ser numérico' });
+    }
+
+    const updated = await cancelCita(idNum);
+    return res.json(updated);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'NOT_FOUND') {
+      return res.status(404).json({ message: 'Cita no encontrada' });
+    }
     next(error);
   }
 };

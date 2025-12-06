@@ -213,14 +213,51 @@ export const getCitaById = async (id: number): Promise<Cita | null> => {
 };
 
 export const confirmCita = async (id: number, telefono?: string): Promise<Cita> => {
+  const current = await getCitaById(id);
+
+  if (!current) {
+    throw new Error('NOT_FOUND');
+  }
+
+  if (current.estado === 'CANCELADO') {
+    throw new Error('ALREADY_CANCELLED');
+  }
+
   const query = `
     UPDATE citas
-    SET estado = $1, confirmed_at = NOW()
+    SET estado = $1, confirmed_at = NOW(), cancelled_at = NULL
     WHERE id_cita = $2
     RETURNING *
   `;
 
   const result = await database.query<Cita>(query, ['CONFIRMADO', id]);
+
+  if (result.rowCount === 0) {
+    throw new Error('NOT_FOUND');
+  }
+
+  return result.rows[0];
+};
+
+export const cancelCita = async (id: number): Promise<Cita> => {
+  const current = await getCitaById(id);
+
+  if (!current) {
+    throw new Error('NOT_FOUND');
+  }
+
+  if (current.estado === 'CANCELADO') {
+    return current;
+  }
+
+  const query = `
+    UPDATE citas
+    SET estado = 'CANCELADO', cancelled_at = NOW()
+    WHERE id_cita = $1
+    RETURNING *
+  `;
+
+  const result = await database.query<Cita>(query, [id]);
 
   if (result.rowCount === 0) {
     throw new Error('NOT_FOUND');
