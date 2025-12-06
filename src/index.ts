@@ -34,8 +34,13 @@ const startServer = async () => {
       await database.query('SELECT 1');
       
       // Ejecutar migraciones
-      console.log('[SERVER] Iniciando migraciones de base de datos...');
-      await runMigrations();
+      try {
+        console.log('[SERVER] Iniciando migraciones de base de datos...');
+        await runMigrations();
+      } catch (migrationError) {
+        console.error('[SERVER] Error en migraciones:', migrationError);
+        console.log('[SERVER] Intentando continuar sin migraciones (pueden estar creadas manualmente)...');
+      }
       
       app.listen(PORT, () => {
         console.log(`API lista en el puerto ${PORT}`);
