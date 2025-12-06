@@ -25,14 +25,31 @@ app.use('/api/citas', citasRouter);
 app.use(errorMiddleware);
 
 const startServer = async () => {
-  try {
-    await database.query('SELECT 1');
-    app.listen(PORT, () => {
-      console.log(`API lista en el puerto ${PORT}`);
-    });
-  } catch (error) {
-    console.error('No se pudo conectar a la base de datos', error);
-    process.exit(1);
+  const maxRetries = 10;
+  let retries = 0;
+
+  while (retries < maxRetries) {
+    try {
+      await database.query('SELECT 1');
+      app.listen(PORT, () => {
+        console.log(`API lista en el puerto ${PORT}`);
+      });
+      return;
+    } catch (error) {
+      retries++;
+      const waitTime = Math.min(1000 * Math.pow(2, retries), 10000);
+      console.error(
+        `No se pudo conectar a la base de datos (intento ${retries}/${maxRetries}). Reintentando en ${waitTime}ms...`,
+        error,
+      );
+      
+      if (retries >= maxRetries) {
+        console.error('Máximo de reintentos alcanzado. Abortando...');
+        process.exit(1);
+      }
+      
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
   }
 };
 
