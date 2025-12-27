@@ -4,6 +4,7 @@ services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
+    container_name: citas-postgres
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -19,6 +20,38 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    networks:
+      - citas-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: citas-app
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
+      SMS_ENABLED: ${SMS_ENABLED}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - citas-network
 
 volumes:
   postgres_data:
+
+networks:
+  citas-network:
+    driver: bridge
