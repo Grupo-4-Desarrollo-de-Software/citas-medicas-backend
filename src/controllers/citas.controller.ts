@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from "express";
 import {
   Canal,
   CreateCitaDTO,
@@ -7,42 +7,46 @@ import {
   getCitas,
   confirmCita,
   cancelCita,
-} from '../services/citas.service';
+} from "../services/citas.service";
 
-const allowedCanales: Canal[] = ['API', 'SMS', 'WEB'];
+const allowedCanales: Canal[] = ["API", "SMS", "WEB"];
 
-const buildCreateDto = (body: Request['body']): CreateCitaDTO => {
-  const { id_paciente, id_medico, fecha, hora, canal, estado } = body;
+const buildCreateDto = (body: Request["body"]): CreateCitaDTO => {
+  const { id_paciente, id_especialidad, id_sede, fecha, hora, canal, estado } =
+    body;
   const telefono = body.telefono;
 
   const parsedPaciente = Number(id_paciente);
-  const parsedMedico = Number(id_medico);
+  const parsedEspecialidad = Number(id_especialidad);
+  const parsedSede = Number(id_sede);
 
   if (
     !Number.isFinite(parsedPaciente) ||
-    !Number.isFinite(parsedMedico) ||
-    typeof fecha !== 'string' ||
-    typeof hora !== 'string' ||
-    typeof canal !== 'string'
+    !Number.isFinite(parsedEspecialidad) ||
+    !Number.isFinite(parsedSede) ||
+    typeof fecha !== "string" ||
+    typeof hora !== "string" ||
+    typeof canal !== "string"
   ) {
-    throw new Error('VALIDATION_ERROR');
+    throw new Error("VALIDATION_ERROR");
   }
 
   if (!allowedCanales.includes(canal as Canal)) {
-    throw new Error('INVALID_CANAL');
+    throw new Error("INVALID_CANAL");
   }
 
-  if (estado && typeof estado !== 'string') {
-    throw new Error('VALIDATION_ERROR');
+  if (estado && typeof estado !== "string") {
+    throw new Error("VALIDATION_ERROR");
   }
 
-  if (telefono && typeof telefono !== 'string') {
-    throw new Error('VALIDATION_ERROR');
+  if (telefono && typeof telefono !== "string") {
+    throw new Error("VALIDATION_ERROR");
   }
 
   return {
     id_paciente: parsedPaciente,
-    id_medico: parsedMedico,
+    id_especialidad: parsedEspecialidad,
+    id_sede: parsedSede,
     fecha,
     hora,
     canal: canal as Canal,
@@ -54,12 +58,13 @@ const buildCreateDto = (body: Request['body']): CreateCitaDTO => {
 export const createCitaController = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const dto = buildCreateDto(req.body);
     const idempotencyKey =
-      (req.header('Idempotency-Key') || req.header('idempotency-key')) ?? undefined;
+      (req.header("Idempotency-Key") || req.header("idempotency-key")) ??
+      undefined;
 
     const result = await createCita(dto, idempotencyKey);
 
@@ -71,21 +76,21 @@ export const createCitaController = async (
     return res.status(200).json(result.cita);
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message === 'VALIDATION_ERROR') {
+      if (error.message === "VALIDATION_ERROR") {
         return res
           .status(400)
-          .json({ message: 'Datos incompletos o con tipo inválido' });
+          .json({ message: "Datos incompletos o con tipo inválido" });
       }
 
-      if (error.message === 'INVALID_CANAL') {
+      if (error.message === "INVALID_CANAL") {
         return res
           .status(400)
           .json({ message: "El canal debe ser 'API', 'SMS' o 'WEB'" });
       }
-      if (error.message === 'SCHEDULE_CONFLICT') {
-        return res
-          .status(409)
-          .json({ message: 'Existe otra cita para ese médico en la misma fecha/hora' });
+      if (error.message === "SCHEDULE_CONFLICT") {
+        return res.status(409).json({
+          message: "Existe otra cita para ese médico en la misma fecha/hora",
+        });
       }
     }
 
@@ -96,7 +101,7 @@ export const createCitaController = async (
 export const getCitasController = async (
   _req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const citas = await getCitas();
@@ -109,19 +114,19 @@ export const getCitasController = async (
 export const getCitaByIdController = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const id = Number(req.params.id);
 
     if (Number.isNaN(id)) {
-      return res.status(400).json({ message: 'El id debe ser numérico' });
+      return res.status(400).json({ message: "El id debe ser numérico" });
     }
 
     const cita = await getCitaById(id);
 
     if (!cita) {
-      return res.status(404).json({ message: 'Cita no encontrada' });
+      return res.status(404).json({ message: "Cita no encontrada" });
     }
 
     res.json(cita);
@@ -133,27 +138,33 @@ export const getCitaByIdController = async (
 export const confirmCitaController = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
-    const { id_cita, id, telefono } = req.body as { id_cita?: number; id?: number; telefono?: string };
+    const { id_cita, id, telefono } = req.body as {
+      id_cita?: number;
+      id?: number;
+      telefono?: string;
+    };
     const idNum = Number(id_cita ?? id);
 
     if (Number.isNaN(idNum)) {
-      return res.status(400).json({ message: 'El id de la cita debe ser numérico' });
+      return res
+        .status(400)
+        .json({ message: "El id de la cita debe ser numérico" });
     }
 
     const updated = await confirmCita(idNum, telefono);
     return res.json(updated);
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message === 'NOT_FOUND') {
-        return res.status(404).json({ message: 'Cita no encontrada' });
+      if (error.message === "NOT_FOUND") {
+        return res.status(404).json({ message: "Cita no encontrada" });
       }
-      if (error.message === 'ALREADY_CANCELLED') {
+      if (error.message === "ALREADY_CANCELLED") {
         return res
           .status(409)
-          .json({ message: 'La cita está cancelada y no puede confirmarse' });
+          .json({ message: "La cita está cancelada y no puede confirmarse" });
       }
     }
 
@@ -164,22 +175,89 @@ export const confirmCitaController = async (
 export const cancelCitaController = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const { id_cita, id } = req.body as { id_cita?: number; id?: number };
     const idNum = Number(id_cita ?? id);
 
     if (Number.isNaN(idNum)) {
-      return res.status(400).json({ message: 'El id de la cita debe ser numérico' });
+      return res
+        .status(400)
+        .json({ message: "El id de la cita debe ser numérico" });
     }
 
     const updated = await cancelCita(idNum);
     return res.json(updated);
   } catch (error) {
-    if (error instanceof Error && error.message === 'NOT_FOUND') {
-      return res.status(404).json({ message: 'Cita no encontrada' });
+    if (error instanceof Error && error.message === "NOT_FOUND") {
+      return res.status(404).json({ message: "Cita no encontrada" });
     }
+    next(error);
+  }
+};
+
+export const createCitaBySmsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { telefono, id_especialidad, id_sede, fecha, hora } = req.body;
+
+    if (!telefono || !id_especialidad || !id_sede || !fecha || !hora) {
+      return res.status(400).json({
+        message:
+          "telefono, id_especialidad, id_sede, fecha y hora son requeridos",
+      });
+    }
+
+    // Buscar o crear paciente por teléfono
+    const { getPacienteByTelefono, createPaciente } = await import(
+      "../services/pacientes.service"
+    );
+
+    let paciente = await getPacienteByTelefono(telefono);
+
+    if (!paciente) {
+      // Crear paciente con datos mínimos
+      paciente = await createPaciente({
+        nombre: "Paciente SMS",
+        telefono,
+      });
+    }
+
+    // Crear la cita
+    const dto: CreateCitaDTO = {
+      id_paciente: paciente.id_paciente,
+      id_especialidad: Number(id_especialidad),
+      id_sede: Number(id_sede),
+      fecha,
+      hora,
+      canal: "SMS",
+      estado: "PENDIENTE",
+      telefono,
+    };
+
+    const result = await createCita(dto);
+
+    return res.status(201).json(result.cita);
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "VALIDATION_ERROR") {
+        return res
+          .status(400)
+          .json({ message: "Datos incompletos o con tipo inválido" });
+      }
+
+      if (error.message === "SCHEDULE_CONFLICT") {
+        return res.status(409).json({
+          message:
+            "Existe otra cita para esa especialidad/sede en la misma fecha/hora",
+        });
+      }
+    }
+
     next(error);
   }
 };

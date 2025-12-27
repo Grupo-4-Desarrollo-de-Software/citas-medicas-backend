@@ -1,7 +1,7 @@
-import bcrypt from 'bcryptjs';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import database from '../db/database';
-import { PublicUsuario, UserRole, Usuario } from '../models/user.model';
+import bcrypt from "bcryptjs";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import database from "../db/database";
+import { PublicUsuario, UserRole, Usuario } from "../models/user.model";
 
 export interface RegisterDTO {
   nombre: string;
@@ -20,14 +20,14 @@ export interface AuthResult {
   token: string;
 }
 
-export interface AuthTokenPayload extends JwtPayload {
+export interface AuthTokenPayload {
   sub: number;
   role: UserRole;
   email: string;
   nombre: string;
 }
 
-const allowedRoles: UserRole[] = ['ADMIN', 'OPERADOR'];
+const allowedRoles: UserRole[] = ["ADMIN", "OPERADOR"];
 const SALT_ROUNDS = 10;
 
 const toPublicUser = (user: Usuario): PublicUsuario => {
@@ -40,7 +40,7 @@ const getJwtSecret = (): string => {
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
-    throw new Error('JWT_SECRET_NOT_CONFIGURED');
+    throw new Error("JWT_SECRET_NOT_CONFIGURED");
   }
 
   return secret;
@@ -57,14 +57,16 @@ const signToken = (user: PublicUsuario): string => {
     nombre: user.nombre,
   };
 
-  return jwt.sign(payload, secret, { expiresIn: process.env.JWT_EXPIRES_IN ?? '8h' });
+  return jwt.sign(payload, secret, {
+    expiresIn: process.env.JWT_EXPIRES_IN ?? "8h",
+  } as any);
 };
 
 export const register = async (dto: RegisterDTO): Promise<AuthResult> => {
   const role = dto.rol;
 
   if (!allowedRoles.includes(role)) {
-    throw new Error('INVALID_ROLE');
+    throw new Error("INVALID_ROLE");
   }
 
   const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
@@ -91,19 +93,20 @@ export const register = async (dto: RegisterDTO): Promise<AuthResult> => {
 
 export const login = async (dto: LoginDTO): Promise<AuthResult> => {
   const email = normalizeEmail(dto.email);
-  const result = await database.query<Usuario>('SELECT * FROM usuarios WHERE email = $1', [
-    email,
-  ]);
+  const result = await database.query<Usuario>(
+    "SELECT * FROM usuarios WHERE email = $1",
+    [email]
+  );
 
   if (result.rowCount === 0) {
-    throw new Error('INVALID_CREDENTIALS');
+    throw new Error("INVALID_CREDENTIALS");
   }
 
   const user = result.rows[0];
   const passwordMatch = await bcrypt.compare(dto.password, user.password_hash);
 
   if (!passwordMatch) {
-    throw new Error('INVALID_CREDENTIALS');
+    throw new Error("INVALID_CREDENTIALS");
   }
 
   const publicUser = toPublicUser(user);
@@ -114,14 +117,17 @@ export const login = async (dto: LoginDTO): Promise<AuthResult> => {
 
 export const verifyToken = (token: string): AuthTokenPayload => {
   const secret = getJwtSecret();
-  const payload = jwt.verify(token, secret) as AuthTokenPayload;
+  const payload = jwt.verify(token, secret) as any as AuthTokenPayload;
   return payload;
 };
 
-export const getUserById = async (id: number): Promise<PublicUsuario | null> => {
-  const result = await database.query<Usuario>('SELECT * FROM usuarios WHERE id_usuario = $1', [
-    id,
-  ]);
+export const getUserById = async (
+  id: number
+): Promise<PublicUsuario | null> => {
+  const result = await database.query<Usuario>(
+    "SELECT * FROM usuarios WHERE id_usuario = $1",
+    [id]
+  );
 
   if (result.rowCount === 0) {
     return null;
