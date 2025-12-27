@@ -1,10 +1,11 @@
 # Sistema de Reservas Médicas Multicanal – Backend
 
-Backend en Node.js + TypeScript + PostgreSQL para registrar y consultar citas médicas consumido por app Android y panel web. Soporta registro de citas por **API**, **SMS** y **WEB**.
+Backend en Node.js + TypeScript + PostgreSQL para registrar y consultar citas médicas consumido por app Android y panel web. Soporta registro de citas por **API**, **SMS**, **SMS Conversacional** y **WEB**.
 
 ## Características principales
 
-✅ **Multicanal**: Registro de citas por API REST, SMS y WEB
+✅ **Multicanal**: Registro de citas por API REST, SMS, SMS Conversacional y WEB
+✅ **Flujo conversacional SMS**: Diálogo automático con Twilio para agendar citas
 ✅ **Gestión de pacientes, operadores y especialidades**
 ✅ **Control de rol (ADMIN, OPERADOR)**
 ✅ **Autenticación JWT**
