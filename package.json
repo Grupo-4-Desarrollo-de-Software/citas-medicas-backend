@@ -30,7 +30,7 @@
     "swagger-ui-express": "^5.0.0"
   },
   "optionalDependencies": {
-    "twilio": "^4.0.0"
+    "twilio": "^4.23.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
