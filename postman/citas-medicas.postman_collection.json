@@ -1,8 +1,8 @@
 {
     "info": {
-        "name": "Citas Médicas - Colección",
+        "name": "Citas Médicas - API",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-        "description": "Colección con ejemplos para los flujos principales de la API de citas (crear, listar, obtener, confirmar)."
+        "description": "Colección completa de la API de Citas Médicas con todos los endpoints"
     },
     "variable": [
         {
@@ -10,137 +10,872 @@
             "value": "http://localhost:3000"
         },
         {
-            "key": "citaId",
-            "value": "10"
+            "key": "token",
+            "value": ""
         },
         {
-            "key": "idempotencyKey",
-            "value": "my-unique-key-123"
+            "key": "citaId",
+            "value": "1"
+        },
+        {
+            "key": "pacienteId",
+            "value": "1"
+        },
+        {
+            "key": "sedeId",
+            "value": "1"
+        },
+        {
+            "key": "especialidadId",
+            "value": "1"
+        },
+        {
+            "key": "operadorId",
+            "value": "1"
         }
     ],
     "item": [
         {
-            "name": "Crear cita (simple)",
-            "request": {
-                "method": "POST",
-                "header": [
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Register",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"nombre\": \"Juan Pérez\",\n  \"role\": \"OPERADOR\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "register"
+                            ]
+                        }
                     }
-                ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n  \"id_paciente\": 1,\n  \"id_medico\": 2,\n  \"fecha\": \"2025-12-01\",\n  \"hora\": \"09:30\",\n  \"canal\": \"API\",\n  \"telefono\": \"+5491112345678\"\n}"
                 },
-                "url": {
-                    "raw": "{{baseUrl}}/api/citas",
-                    "host": [
-                        "{{baseUrl}}"
-                    ],
-                    "path": [
-                        "api",
-                        "citas"
-                    ]
-                },
-                "description": "Crea una nueva cita. Si no se pasa la cabecera Idempotency-Key, la creación es normal (no idempotente)."
-            }
-        },
-        {
-            "name": "Crear cita (idempotente)",
-            "request": {
-                "method": "POST",
-                "header": [
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                    },
-                    {
-                        "key": "Idempotency-Key",
-                        "value": "{{idempotencyKey}}"
+                {
+                    "name": "Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ]
+                        }
                     }
-                ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n  \"id_paciente\": 3,\n  \"id_medico\": 5,\n  \"fecha\": \"2025-12-02\",\n  \"hora\": \"14:00\",\n  \"canal\": \"WEB\",\n  \"telefono\": \"+5491112345678\"\n}"
-                },
-                "url": {
-                    "raw": "{{baseUrl}}/api/citas",
-                    "host": [
-                        "{{baseUrl}}"
-                    ],
-                    "path": [
-                        "api",
-                        "citas"
-                    ]
-                },
-                "description": "Crear cita usando Idempotency-Key. Repetir la petición con la misma key devuelve la misma cita en vez de crear otra."
-            }
+                }
+            ]
         },
         {
-            "name": "Listar citas",
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "{{baseUrl}}/api/citas",
-                    "host": [
-                        "{{baseUrl}}"
-                    ],
-                    "path": [
-                        "api",
-                        "citas"
-                    ]
-                },
-                "description": "Devuelve todas las citas ordenadas por fecha/hora."
-            }
-        },
-        {
-            "name": "Obtener cita por id",
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "{{baseUrl}}/api/citas/{{citaId}}",
-                    "host": [
-                        "{{baseUrl}}"
-                    ],
-                    "path": [
-                        "api",
-                        "citas",
-                        "{{citaId}}"
-                    ]
-                },
-                "description": "Obtener una cita por su id. Cambia la variable `citaId` según necesites."
-            }
-        },
-        {
-            "name": "Confirmar cita",
-            "request": {
-                "method": "POST",
-                "header": [
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
+            "name": "Citas",
+            "item": [
+                {
+                    "name": "Crear cita",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"id_paciente\": 1,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1,\n  \"fecha\": \"2025-12-28\",\n  \"hora\": \"09:30:00\",\n  \"canal\": \"API\",\n  \"telefono\": \"+5491112345678\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/citas",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "citas"
+                            ]
+                        }
                     }
-                ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n  \"id_cita\": {{citaId}},\n  \"telefono\": \"+5491112345678\"\n}"
                 },
-                "url": {
-                    "raw": "{{baseUrl}}/api/citas/confirmar",
-                    "host": [
-                        "{{baseUrl}}"
-                    ],
-                    "path": [
-                        "api",
-                        "citas",
-                        "confirmar"
-                    ]
+                {
+                    "name": "Crear cita por SMS",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"telefono\": \"+5491112345678\",\n  \"id_especialidad\": 1,\n  \"id_sede\": 1,\n  \"fecha\": \"2025-12-28\",\n  \"hora\": \"14:00:00\",\n  \"nombre_paciente\": \"Carlos García\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/citas/sms",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "citas",
+                                "sms"
+                            ]
+                        }
+                    }
                 },
-                "description": "Marca la cita como CONFIRMADO y actualiza `confirmed_at`. También acepta `id` en lugar de `id_cita`."
-            }
+                {
+                    "name": "Listar citas",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/citas",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "citas"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Obtener cita por id",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/citas/{{citaId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "citas",
+                                "{{citaId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Confirmar cita",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"id\": {{citaId}}\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/citas/{{citaId}}/confirmar",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "citas",
+                                "{{citaId}}",
+                                "confirmar"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Cancelar cita",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"razon\": \"Motivo de cancelación\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/citas/{{citaId}}/cancelar",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "citas",
+                                "{{citaId}}",
+                                "cancelar"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Pacientes",
+            "item": [
+                {
+                    "name": "Listar pacientes",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/pacientes",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pacientes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Obtener paciente",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/pacientes/{{pacienteId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pacientes",
+                                "{{pacienteId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Crear paciente",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"nombre\": \"Miguel López\",\n  \"telefono\": \"+5491112345678\",\n  \"email\": \"miguel@example.com\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/pacientes",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pacientes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Actualizar paciente",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"nombre\": \"Miguel López Actualizado\",\n  \"email\": \"miguel.new@example.com\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/pacientes/{{pacienteId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pacientes",
+                                "{{pacienteId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Eliminar paciente",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/pacientes/{{pacienteId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pacientes",
+                                "{{pacienteId}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Sedes",
+            "item": [
+                {
+                    "name": "Listar sedes",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/sedes",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "sedes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Obtener sede",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/sedes/{{sedeId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "sedes",
+                                "{{sedeId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Crear sede",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"nombre\": \"Sede Central\",\n  \"direccion\": \"Calle Principal 123\",\n  \"ciudad\": \"Lima\",\n  \"pais\": \"Peru\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/sedes",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "sedes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Actualizar sede",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"nombre\": \"Sede Central Actualizada\",\n  \"ciudad\": \"Lima\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/sedes/{{sedeId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "sedes",
+                                "{{sedeId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Eliminar sede",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/sedes/{{sedeId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "sedes",
+                                "{{sedeId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Especialidades por sede",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/sedes/{{sedeId}}/especialidades",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "sedes",
+                                "{{sedeId}}",
+                                "especialidades"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Vincular especialidad a sede",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/sedes/{{sedeId}}/especialidades/{{especialidadId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "sedes",
+                                "{{sedeId}}",
+                                "especialidades",
+                                "{{especialidadId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Desvincular especialidad de sede",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/sedes/{{sedeId}}/especialidades/{{especialidadId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "sedes",
+                                "{{sedeId}}",
+                                "especialidades",
+                                "{{especialidadId}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Especialidades",
+            "item": [
+                {
+                    "name": "Listar especialidades",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/especialidades",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "especialidades"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Obtener especialidad",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/especialidades/{{especialidadId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "especialidades",
+                                "{{especialidadId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Crear especialidad",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"nombre\": \"Cardiología\",\n  \"descripcion\": \"Especialidad del corazón y sistema cardiovascular\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/especialidades",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "especialidades"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Actualizar especialidad",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"nombre\": \"Cardiología Avanzada\",\n  \"descripcion\": \"Especialidad avanzada del corazón\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/especialidades/{{especialidadId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "especialidades",
+                                "{{especialidadId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Eliminar especialidad",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/especialidades/{{especialidadId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "especialidades",
+                                "{{especialidadId}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Operadores",
+            "item": [
+                {
+                    "name": "Listar operadores",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/operadores",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "operadores"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Obtener operador",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/operadores/{{operadorId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "operadores",
+                                "{{operadorId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Crear operador",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"nombre\": \"Rosa García\",\n  \"email\": \"rosa@example.com\",\n  \"telefono\": \"+5491112345678\",\n  \"password\": \"securepass123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/operadores",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "operadores"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Actualizar operador",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"nombre\": \"Rosa García Pérez\",\n  \"email\": \"rosa.new@example.com\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/operadores/{{operadorId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "operadores",
+                                "{{operadorId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Eliminar operador",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/operadores/{{operadorId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "operadores",
+                                "{{operadorId}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Métricas",
+            "item": [
+                {
+                    "name": "Obtener métricas",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/metrics",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "metrics"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Health Check",
+            "item": [
+                {
+                    "name": "Health",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/health",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "health"
+                            ]
+                        }
+                    }
+                }
+            ]
         }
     ]
 }
